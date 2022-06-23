@@ -37,7 +37,7 @@ class Encoder(nn.Module):
         )
         self.relu = nn.ReLU()
 
-        self.dropout = nn.Dropout(0.25)
+        self.dropout = nn.Dropout(0.35)
 
     def forward(self, x):
         # x = x.reshape((1, self.seq_len, self.n_features))
@@ -89,7 +89,7 @@ class Decoder(nn.Module):
             batch_first=True
         )
         self.output_layer = nn.Linear(input_dim, n_features)
-        self.dropout = nn.Dropout(0.25)
+        self.dropout = nn.Dropout(0.35)
 
     def forward(self, x):
         # print(x.shape)
@@ -134,7 +134,7 @@ class RecurrentAutoencoder(nn.Module):
 
 def train_model(model, train_dataset, val_dataset, n_epochs):
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    criterion = nn.HuberLoss()
+    criterion = nn.MSELoss()
 
     history = dict(train=[], val=[])
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -189,15 +189,15 @@ def main():
     x[:, 2] = (x[:, 2] - v2_min) / (v2_max - v2_min)
 
     x = x.reshape((10000, 1000, 3))
-    train_x = x[:9000]
-    val_x = x[9001:]
+    train_x = x[:9800]
+    val_x = x[9801:]
     n_seq, seq_len, n_features = train_x.shape
 
     ## Create Loaders
-    training_loader = torch.utils.data.DataLoader(train_x, batch_size=32, shuffle=True, num_workers=2)
-    validation_loader = torch.utils.data.DataLoader(val_x, batch_size=32, shuffle=False, num_workers=2)
+    training_loader = torch.utils.data.DataLoader(train_x, batch_size=16, shuffle=True, num_workers=2)
+    validation_loader = torch.utils.data.DataLoader(val_x, batch_size=16, shuffle=False, num_workers=2)
 
-    model = RecurrentAutoencoder(seq_len, n_features, 128).cuda()
+    model = RecurrentAutoencoder(seq_len, n_features, 256).cuda()
 
     model, history = train_model(
         model,
