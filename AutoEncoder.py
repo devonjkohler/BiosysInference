@@ -37,7 +37,7 @@ class Encoder(nn.Module):
         )
         self.relu = nn.ReLU()
 
-        self.dropout = nn.Dropout(0.35)
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, x):
         # x = x.reshape((1, self.seq_len, self.n_features))
@@ -45,12 +45,6 @@ class Encoder(nn.Module):
         x, (_, _) = self.rnn1(x)
         x = self.dropout(x)
         # print(x.shape)
-        x, (_, _) = self.rnn2(x)
-        x = self.dropout(x)
-        x, (_, _) = self.rnn2(x)
-        x = self.dropout(x)
-        x, (_, _) = self.rnn2(x)
-        x = self.dropout(x)
         x, (_, _) = self.rnn2(x)
         x = self.dropout(x)
         x, (_, _) = self.rnn2(x)
@@ -89,7 +83,7 @@ class Decoder(nn.Module):
             batch_first=True
         )
         self.output_layer = nn.Linear(input_dim, n_features)
-        self.dropout = nn.Dropout(0.35)
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, x):
         # print(x.shape)
@@ -103,14 +97,6 @@ class Decoder(nn.Module):
         # print(x.shape)
         x = x.reshape((x.shape[0], self.seq_len, self.input_dim))
         x, (hidden_n, cell_n) = self.rnn1(x)
-        x = self.dropout(x)
-        x, (hidden_n, cell_n) = self.rnn2(x)
-        x = self.dropout(x)
-        x, (hidden_n, cell_n) = self.rnn2(x)
-        x = self.dropout(x)
-        x, (hidden_n, cell_n) = self.rnn2(x)
-        x = self.dropout(x)
-        x, (hidden_n, cell_n) = self.rnn2(x)
         x = self.dropout(x)
         x, (hidden_n, cell_n) = self.rnn2(x)
         x = self.dropout(x)
