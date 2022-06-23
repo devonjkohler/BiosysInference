@@ -47,6 +47,14 @@ class Encoder(nn.Module):
         # print(x.shape)
         x, (_, _) = self.rnn2(x)
         x = self.dropout(x)
+        x, (_, _) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (_, _) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (_, _) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (_, _) = self.rnn2(x)
+        x = self.dropout(x)
         x, (hidden_n, _) = self.rnn3(x)
         hidden_n = self.dropout(hidden_n)
         hidden_n = self.linear(hidden_n)
@@ -77,7 +85,7 @@ class Decoder(nn.Module):
         self.rnn2 = nn.LSTM(
             input_size=input_dim,
             hidden_size=input_dim,
-            num_layers=2,
+            num_layers=1,
             batch_first=True
         )
         self.output_layer = nn.Linear(input_dim, n_features)
@@ -95,6 +103,16 @@ class Decoder(nn.Module):
         # print(x.shape)
         x = x.reshape((x.shape[0], self.seq_len, self.input_dim))
         x, (hidden_n, cell_n) = self.rnn1(x)
+        x = self.dropout(x)
+        x, (hidden_n, cell_n) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (hidden_n, cell_n) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (hidden_n, cell_n) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (hidden_n, cell_n) = self.rnn2(x)
+        x = self.dropout(x)
+        x, (hidden_n, cell_n) = self.rnn2(x)
         x = self.dropout(x)
         x, (hidden_n, cell_n) = self.rnn2(x)
         x = self.dropout(x)
