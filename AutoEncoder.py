@@ -21,7 +21,7 @@ class Encoder(nn.Module):
         self.rnn2 = nn.LSTM(
             input_size=self.hidden_dim,
             hidden_size=self.hidden_dim,
-            num_layers=6,
+            num_layers=1,
             batch_first=True
         )
         self.rnn3 = nn.LSTM(
@@ -31,13 +31,28 @@ class Encoder(nn.Module):
             batch_first=True
         )
 
+        self.linear = nn.Linear(
+            embedding_dim,
+            embedding_dim
+        )
+        self.relu = nn.ReLU()
+
+        self.dropout = nn.Dropout(0.25)
+
     def forward(self, x):
         # x = x.reshape((1, self.seq_len, self.n_features))
         # print(x.shape)
         x, (_, _) = self.rnn1(x)
+        x = self.dropout(x)
         # print(x.shape)
         x, (_, _) = self.rnn2(x)
+        x = self.dropout(x)
         x, (hidden_n, _) = self.rnn3(x)
+        hidden_n = self.dropout(hidden_n)
+        hidden_n = self.linear(hidden_n)
+        hidden_n = self.relu(hidden_n)
+        hidden_n = self.linear(hidden_n)
+        hidden_n = self.relu(hidden_n)
         # print(x.shape)
         # print(hidden_n.shape)
         return hidden_n.squeeze()
@@ -48,6 +63,11 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.seq_len, self.n_features = seq_len, n_features
         self.hidden_dim, self.n_features, self.input_dim = 2 * input_dim, n_features, input_dim
+        self.linear = nn.Linear(
+            input_dim,
+            input_dim
+        )
+        self.relu = nn.ReLU()
         self.rnn1 = nn.LSTM(
             input_size=input_dim,
             hidden_size=input_dim,
@@ -57,23 +77,30 @@ class Decoder(nn.Module):
         self.rnn2 = nn.LSTM(
             input_size=input_dim,
             hidden_size=input_dim,
-            num_layers=7,
+            num_layers=2,
             batch_first=True
         )
         self.output_layer = nn.Linear(input_dim, n_features)
+        self.dropout = nn.Dropout(0.25)
 
     def forward(self, x):
         # print(x.shape)
         # print(self.seq_len)
+        x = self.linear(x)
+        x = self.relu(x)
+        x = self.linear(x)
+        x = self.relu(x)
+        # print(x.shape)
         x = x.repeat(1, self.seq_len)
         # print(x.shape)
         x = x.reshape((x.shape[0], self.seq_len, self.input_dim))
         x, (hidden_n, cell_n) = self.rnn1(x)
+        x = self.dropout(x)
         x, (hidden_n, cell_n) = self.rnn2(x)
+        x = self.dropout(x)
         # x = x.reshape((self.seq_len, self.n_features))
         # print(x.shape)
         return self.output_layer(x)
-
 
 class RecurrentAutoencoder(nn.Module):
     def __init__(self, seq_len, n_features, embedding_dim=64):
@@ -115,8 +142,8 @@ def train_model(model, train_dataset, val_dataset, n_epochs):
             val_losses.append(loss.item())
     train_loss = np.mean(train_losses)
     val_loss = np.mean(val_losses)
-    history['train'].append(train_loss)
-    history['val'].append(val_loss)
+    history['train'].append(train_losses)
+    history['val'].append(val_losses)
     if val_loss < best_loss:
         best_loss = val_loss
         best_model_wts = copy.deepcopy(model.state_dict())
